@@ -1,0 +1,9 @@
+- style = require('../css/file.css');
+
+div(class=style.file)
+  div(class=style.info)
+    div(class=style.filename) #{filename}
+    div
+      div(class=style.progressLine class=style.progressLineCompleted data-el='progress')
+    div(class=style.control)
+      span.glyphicon.glyphicon-remove(class=style.iconButton data-el='remove')

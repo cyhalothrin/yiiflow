@@ -1,0 +1,12 @@
+.browseLink {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #337ab7;
+}
+
+.dropArea {
+  border: 1px dashed #333;
+  padding: 20px 10px;
+  border-radius: 3px;
+  text-align: center;
+}

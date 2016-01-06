@@ -1,0 +1,19 @@
+{
+  "name": "yii2-flow-file-upload",
+  "version": "0.0.0",
+  "authors": [
+    "Yerlan Amanzhol <eamanjol@avalon.kz>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "vendor/bower",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "flow.js": "~2"
+  }
+}

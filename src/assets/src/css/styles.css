@@ -1,0 +1,68 @@
+.flow-file__browse-link {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #337ab7;
+}
+
+.flow-file__drop-area {
+  border: 1px dashed #333;
+  padding: 20px 10px;
+  border-radius: 3px;
+  text-align: center;
+}
+
+.flow-file__file {
+  position: relative;
+  margin: 5px 0;
+}
+
+.flow-file__icon-button {
+  cursor: pointer;
+}
+
+.flow-file__preview {
+  height: 40px;
+  width: 40px;
+  display: inline-block;
+  overflow: hidden;
+  position: absolute;
+}
+
+.flow-file__image {
+  height: 100%;
+  min-height: 100%;
+  width: auto;
+}
+
+.flow-file__progress-line {
+  height: 3px;
+  width: 0%;
+}
+
+.flow-file__progress-line_uploading {
+  background-color: #0074D9;
+}
+
+.flow-file__progress-line_completed {
+  background-color: #2ECC40;
+}
+
+.flow-file__file-info {
+  margin-left: 45px;
+  margin-right: 20px;
+  height: 40px;
+}
+
+.flow-file__file-control {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding-top: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+.flow-file__filename {
+  line-height: 30px;
+  height: 30px;
+}

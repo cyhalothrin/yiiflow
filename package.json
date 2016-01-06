@@ -1,0 +1,27 @@
+{
+  "name": "yiiflow",
+  "main": "./src/assets/src/main.js",
+  "scripts": {
+    "build-dev": "webpack -d -w",
+    "build-prod": "webpack -p --config webpack.production.config.js"
+  },
+  "author": "Yerlan Amanzhol <amanzhol.e@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^6.1.1",
+    "babel-core": "^6.2.1",
+    "babel-loader": "^6.2.0",
+    "babel-preset-es2015": "^6.1.18",
+    "css-loader": "^0.23.0",
+    "eslint": "^1.10.2",
+    "eslint-config-airbnb": "^1.0.2",
+    "extract-text-webpack-plugin": "^0.9.1",
+    "jade": "^1.11.0",
+    "jade-loader": "^0.8.0",
+    "postcss-inline-svg": "^1.3.0",
+    "postcss-loader": "^0.8.0",
+    "precss": "^1.3.0",
+    "style-loader": "^0.13.0",
+    "webpack": "^1.12.9"
+  }
+}

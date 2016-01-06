@@ -1,0 +1,54 @@
+.main__browseLink___2hfax {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #337ab7;
+}
+
+.main__dropArea___1um-E {
+  border: 1px dashed #333;
+  padding: 20px 10px;
+  border-radius: 3px;
+  text-align: center;
+}
+.file__file___maN0q {
+  position: relative;
+  margin: 5px 0;
+}
+
+.file__iconButton___2XDe0 {
+  cursor: pointer;
+}
+
+.file__progressLine___jdYor {
+  height: 3px;
+  width: 100%;
+}
+
+.file__progressLineUploading___3_7T1 {
+  background-color: #0074D9;
+}
+
+.file__progressLineCompleted___KrHh3 {
+  background-color: #2ECC40;
+}
+
+.file__info___2k1CK {
+  margin-right: 20px;
+  height: 40px;
+}
+
+.file__control___3qPwK {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding-top: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+.file__filename___3hFCB {
+  line-height: 30px;
+  height: 30px;
+}
+
+/*# sourceMappingURL=styles.css.map*/
