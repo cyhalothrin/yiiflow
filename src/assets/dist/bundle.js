@@ -49,7 +49,7 @@
 
 	'use strict';
 	
-	var _FlowFileInput = __webpack_require__(/*! ./js/FlowFileInput */ 2);
+	var _FlowFileInput = __webpack_require__(/*! ./js/FlowFileInput */ 1);
 	
 	var _FlowFileInput2 = _interopRequireDefault(_FlowFileInput);
 	
@@ -58,24 +58,30 @@
 	$.fn.flowFileUpload = function flowFileUpload() {
 	  var _this = this;
 	
+	  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	    args[_key - 1] = arguments[_key];
+	  }
+	
 	  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 	
 	  var defaults = {
 	    flowOptions: {}
 	  };
+	  var publicMethods = ['reset'];
 	
 	  return this.each(function () {
-	    var data = _this.data('flowFileUpload');
-	    if (!data) {
-	      var flowFileInput = new _FlowFileInput2.default(_this, $.extend(true, {}, options, defaults));
+	    var flowFileInput = _this.data('flowFileUpload');
+	    if (flowFileInput instanceof _FlowFileInput2.default && typeof options === 'string' && publicMethods.indexOf(options) !== -1) {
+	      flowFileInput[options].apply(flowFileInput, args);
+	    } else if (flowFileInput === undefined) {
+	      flowFileInput = new _FlowFileInput2.default(_this, $.extend(true, {}, options, defaults));
 	      _this.data('flowFileUpload', flowFileInput);
 	    }
 	  });
 	}; /* global $ */undefined
 
 /***/ },
-/* 1 */,
-/* 2 */
+/* 1 */
 /*!********************************************!*\
   !*** ./src/assets/src/js/FlowFileInput.js ***!
   \********************************************/
@@ -90,17 +96,21 @@
 	  value: true
 	});
 	
-	var _flowFileInput = __webpack_require__(/*! ../templates/flowFileInput */ 3);
+	var _flowFileInput = __webpack_require__(/*! ../templates/flowFileInput */ 2);
 	
 	var _flowFileInput2 = _interopRequireDefault(_flowFileInput);
 	
-	var _File = __webpack_require__(/*! ./File */ 8);
+	var _File = __webpack_require__(/*! ./File */ 6);
 	
 	var _File2 = _interopRequireDefault(_File);
 	
-	var _UploadedFile = __webpack_require__(/*! ./UploadedFile */ 12);
+	var _UploadedFile = __webpack_require__(/*! ./UploadedFile */ 10);
 	
 	var _UploadedFile2 = _interopRequireDefault(_UploadedFile);
+	
+	var _main = __webpack_require__(/*! ../css/main.css */ 5);
+	
+	var _main2 = _interopRequireDefault(_main);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -130,11 +140,20 @@
 	    this.flow.on('fileSuccess', function (flowFile, message) {
 	      var _JSON$parse = JSON.parse(message);
 	
-	      var filename = _JSON$parse.filename;
+	      var tempName = _JSON$parse.tempName;
 	
-	      _this.uploadedFiles[filename] = flowFile.name;
-	      _this.files[flowFile.uniqueIdentifier].setFilename(filename);
+	      _this.uploadedFiles[tempName] = flowFile.name;
+	      _this.files[flowFile.uniqueIdentifier].setTempName(tempName);
 	      _this.updateValue();
+	    });
+	    this.flow.on('uploadStart', function () {
+	      _this.$input.trigger('uploadStart');
+	    });
+	    this.flow.on('complete', function () {
+	      _this.$input.trigger('complete');
+	    });
+	    this.flow.on('error', function () {
+	      _this.$input.trigger('error');
 	    });
 	  }
 	
@@ -162,21 +181,19 @@
 	  }, {
 	    key: 'removeFile',
 	    value: function removeFile(flowFileId) {
-	      if (flowFileId in this.files) {
-	        if (this.files.hasOwnProperty(flowFileId)) {
-	          var filename = this.files[flowFileId].getFilename();
-	          delete this.files[flowFileId];
-	          this.removeUploadedFile(filename);
-	        }
+	      if (this.files.hasOwnProperty(flowFileId)) {
+	        var tempName = this.files[flowFileId].getTempName();
+	        delete this.files[flowFileId];
+	        this.removeUploadedFile(tempName);
 	      }
 	    }
 	  }, {
 	    key: 'removeUploadedFile',
-	    value: function removeUploadedFile(filename) {
-	      if (filename !== null && filename !== undefined && filename in this.uploadedFiles) {
-	        delete this.uploadedFiles[filename];
+	    value: function removeUploadedFile(tempName) {
+	      if (this.uploadedFiles.hasOwnProperty(tempName)) {
+	        delete this.uploadedFiles[tempName];
 	        this.updateValue();
-	        var url = this.options.deleteUrl + '?filename=' + filename;
+	        var url = this.options.deleteUrl + '?filename=' + tempName;
 	        $.ajax({
 	          url: url,
 	          type: 'POST',
@@ -199,14 +216,15 @@
 	
 	      try {
 	        for (var _iterator = keys[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var key = _step.value;
+	          var tempName = _step.value;
 	
 	          var data = {
-	            filename: key,
-	            viewName: this.uploadedFiles[key]
+	            tempName: tempName,
+	            filename: this.uploadedFiles[tempName]
 	          };
 	          var file = new _UploadedFile2.default(data, this);
 	          file.appendTo(this.$container.find('[data-el=files]'));
+	          this.files[tempName] = file;
 	        }
 	      } catch (err) {
 	        _didIteratorError = true;
@@ -226,8 +244,48 @@
 	  }, {
 	    key: 'createFlowInputs',
 	    value: function createFlowInputs() {
+	      var $dropArea = this.$container.find('[data-el=dropArea]');
 	      this.flow.assignBrowse(this.$container.find('[data-el=browseLink]')[0]);
-	      this.flow.assignDrop(this.$container.find('[data-el=dropArea]')[0]);
+	      this.flow.assignDrop($dropArea[0]);
+	      $dropArea.on('dragenter', function () {
+	        $dropArea.addClass(_main2.default.dropAreaActive);
+	      }).on('dragleave drop', function () {
+	        $dropArea.removeClass(_main2.default.dropAreaActive);
+	      });
+	    }
+	  }, {
+	    key: 'reset',
+	    value: function reset() {
+	      this.flow.cancel();
+	      this.uploadedFiles = {};
+	      var keys = Object.keys(this.files);
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
+	
+	      try {
+	        for (var _iterator2 = keys[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var key = _step2.value;
+	
+	          this.files[key].remove();
+	        }
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	            _iterator2.return();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
+	
+	      this.files = {};
+	      this.updateValue();
 	    }
 	  }]);
 	
@@ -237,13 +295,13 @@
 	exports.default = FlowFileInput;
 
 /***/ },
-/* 3 */
+/* 2 */
 /*!*****************************************************!*\
   !*** ./src/assets/src/templates/flowFileInput.jade ***!
   \*****************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	var jade = __webpack_require__(/*! ./~/jade/lib/runtime.js */ 4);
+	var jade = __webpack_require__(/*! ./~/jade/lib/runtime.js */ 3);
 	
 	module.exports = function template(locals) {
 	var jade_debug = [ new jade.DebugItem( 1, "D:\\v\\default\\yii2-file-upload\\vendor\\cyhalothrin\\yiiflow\\src\\assets\\src\\templates\\flowFileInput.jade" ) ];
@@ -254,7 +312,7 @@
 	;var locals_for_with = (locals || {});(function (style) {
 	jade_debug.unshift(new jade.DebugItem( 0, "D:\\v\\default\\yii2-file-upload\\vendor\\cyhalothrin\\yiiflow\\src\\assets\\src\\templates\\flowFileInput.jade" ));
 	jade_debug.unshift(new jade.DebugItem( 1, "D:\\v\\default\\yii2-file-upload\\vendor\\cyhalothrin\\yiiflow\\src\\assets\\src\\templates\\flowFileInput.jade" ));
-	style = __webpack_require__(/*! ../css/main.css */ 6);
+	style = __webpack_require__(/*! ../css/main.css */ 5);
 	jade_debug.shift();
 	jade_debug.unshift(new jade.DebugItem( 3, "D:\\v\\default\\yii2-file-upload\\vendor\\cyhalothrin\\yiiflow\\src\\assets\\src\\templates\\flowFileInput.jade" ));
 	buf.push("<div data-el=\"dropArea\"" + (jade.cls([style.dropArea], [true])) + ">");
@@ -293,7 +351,7 @@
 	}
 
 /***/ },
-/* 4 */
+/* 3 */
 /*!*******************************!*\
   !*** ./~/jade/lib/runtime.js ***!
   \*******************************/
@@ -516,7 +574,7 @@
 	    throw err;
 	  }
 	  try {
-	    str = str || __webpack_require__(/*! fs */ 5).readFileSync(filename, 'utf8')
+	    str = str || __webpack_require__(/*! fs */ 4).readFileSync(filename, 'utf8')
 	  } catch (ex) {
 	    rethrow(err, null, lineno)
 	  }
@@ -548,7 +606,7 @@
 
 
 /***/ },
-/* 5 */
+/* 4 */
 /*!********************!*\
   !*** fs (ignored) ***!
   \********************/
@@ -557,18 +615,17 @@
 	/* (ignored) */
 
 /***/ },
-/* 6 */
+/* 5 */
 /*!*************************************!*\
   !*** ./src/assets/src/css/main.css ***!
   \*************************************/
 /***/ function(module, exports) {
 
 	// removed by extract-text-webpack-plugin
-	module.exports = {"browseLink":"main__browseLink___2hfax","dropArea":"main__dropArea___1um-E"};
+	module.exports = {"browseLink":"main__browseLink___2hfax","dropArea":"main__dropArea___1um-E","dropAreaActive":"main__dropAreaActive___2hV8V"};
 
 /***/ },
-/* 7 */,
-/* 8 */
+/* 6 */
 /*!***********************************!*\
   !*** ./src/assets/src/js/File.js ***!
   \***********************************/
@@ -582,11 +639,11 @@
 	  value: true
 	});
 	
-	var _file = __webpack_require__(/*! ../templates/file */ 9);
+	var _file = __webpack_require__(/*! ../templates/file */ 7);
 	
 	var _file2 = _interopRequireDefault(_file);
 	
-	var _ProgressBar = __webpack_require__(/*! ./ProgressBar */ 11);
+	var _ProgressBar = __webpack_require__(/*! ./ProgressBar */ 9);
 	
 	var _ProgressBar2 = _interopRequireDefault(_ProgressBar);
 	
@@ -627,7 +684,7 @@
 	  }, {
 	    key: 'destroy',
 	    value: function destroy() {
-	      this.$container.remove();
+	      this.remove();
 	      this.flowFile.cancel();
 	      this.inputObj.removeFile(this.flowFile.uniqueIdentifier);
 	    }
@@ -642,14 +699,19 @@
 	      }
 	    }
 	  }, {
-	    key: 'setFilename',
-	    value: function setFilename(filename) {
-	      this.filename = filename;
+	    key: 'setTempName',
+	    value: function setTempName(filename) {
+	      this.tempName = filename;
 	    }
 	  }, {
-	    key: 'getFilename',
-	    value: function getFilename() {
-	      return this.filename;
+	    key: 'getTempName',
+	    value: function getTempName() {
+	      return this.tempName;
+	    }
+	  }, {
+	    key: 'remove',
+	    value: function remove() {
+	      this.$container.remove();
 	    }
 	  }]);
 	
@@ -659,13 +721,13 @@
 	exports.default = File;
 
 /***/ },
-/* 9 */
+/* 7 */
 /*!********************************************!*\
   !*** ./src/assets/src/templates/file.jade ***!
   \********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	var jade = __webpack_require__(/*! ./~/jade/lib/runtime.js */ 4);
+	var jade = __webpack_require__(/*! ./~/jade/lib/runtime.js */ 3);
 	
 	module.exports = function template(locals) {
 	var jade_debug = [ new jade.DebugItem( 1, "D:\\v\\default\\yii2-file-upload\\vendor\\cyhalothrin\\yiiflow\\src\\assets\\src\\templates\\file.jade" ) ];
@@ -676,7 +738,7 @@
 	;var locals_for_with = (locals || {});(function (filename, style) {
 	jade_debug.unshift(new jade.DebugItem( 0, "D:\\v\\default\\yii2-file-upload\\vendor\\cyhalothrin\\yiiflow\\src\\assets\\src\\templates\\file.jade" ));
 	jade_debug.unshift(new jade.DebugItem( 1, "D:\\v\\default\\yii2-file-upload\\vendor\\cyhalothrin\\yiiflow\\src\\assets\\src\\templates\\file.jade" ));
-	style = __webpack_require__(/*! ../css/file.css */ 10);
+	style = __webpack_require__(/*! ../css/file.css */ 8);
 	jade_debug.shift();
 	jade_debug.unshift(new jade.DebugItem( 3, "D:\\v\\default\\yii2-file-upload\\vendor\\cyhalothrin\\yiiflow\\src\\assets\\src\\templates\\file.jade" ));
 	buf.push("<div" + (jade.cls([style.file], [true])) + ">");
@@ -730,7 +792,7 @@
 	}
 
 /***/ },
-/* 10 */
+/* 8 */
 /*!*************************************!*\
   !*** ./src/assets/src/css/file.css ***!
   \*************************************/
@@ -740,7 +802,7 @@
 	module.exports = {"file":"file__file___maN0q","iconButton":"file__iconButton___2XDe0","progressLine":"file__progressLine___jdYor","progressLineUploading":"file__progressLineUploading___3_7T1","progressLineCompleted":"file__progressLineCompleted___KrHh3","info":"file__info___2k1CK","control":"file__control___3qPwK","filename":"file__filename___3hFCB"};
 
 /***/ },
-/* 11 */
+/* 9 */
 /*!******************************************!*\
   !*** ./src/assets/src/js/ProgressBar.js ***!
   \******************************************/
@@ -754,7 +816,7 @@
 	  value: true
 	});
 	
-	var _file = __webpack_require__(/*! ../css/file */ 10);
+	var _file = __webpack_require__(/*! ../css/file */ 8);
 	
 	var _file2 = _interopRequireDefault(_file);
 	
@@ -797,7 +859,7 @@
 	exports.default = ProgressBar;
 
 /***/ },
-/* 12 */
+/* 10 */
 /*!*******************************************!*\
   !*** ./src/assets/src/js/UploadedFile.js ***!
   \*******************************************/
@@ -811,7 +873,7 @@
 	  value: true
 	});
 	
-	var _file = __webpack_require__(/*! ../templates/file */ 9);
+	var _file = __webpack_require__(/*! ../templates/file */ 7);
 	
 	var _file2 = _interopRequireDefault(_file);
 	
@@ -826,11 +888,9 @@
 	    _classCallCheck(this, UploadedFile);
 	
 	    this.inputObj = inputObj;
-	    this.filename = data.filename;
+	    this.tempName = data.tempName;
 	    this.$container = $(document.createElement('div'));
-	    this.$container.html((0, _file2.default)({
-	      filename: data.viewName
-	    }));
+	    this.$container.html((0, _file2.default)(data));
 	    this.$container.on('click', '[data-el=remove]', function () {
 	      _this.destroy();
 	    });
@@ -844,8 +904,18 @@
 	  }, {
 	    key: 'destroy',
 	    value: function destroy() {
+	      this.remove();
+	      this.inputObj.removeFile(this.tempName);
+	    }
+	  }, {
+	    key: 'getTempName',
+	    value: function getTempName() {
+	      return this.tempName;
+	    }
+	  }, {
+	    key: 'remove',
+	    value: function remove() {
 	      this.$container.remove();
-	      this.inputObj.removeUploadedFile(this.filename);
 	    }
 	  }]);
 	

@@ -46,6 +46,23 @@ class UploadedFile extends BaseUploadedFile
     public static function getInstancesByName($name)
     {
         $data = Yii::$app->request->post($name);
+        return self::loadFiles($data);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function getInstances($model, $attribute)
+    {
+        return self::loadFiles($model->$attribute);
+    }
+
+    /**
+     * @param string $data
+     * @return UploadedFile[]
+     */
+    private static function loadFiles($data)
+    {
         $results = [];
         if (empty($data)) {
             return $results;

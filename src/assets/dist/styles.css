@@ -9,6 +9,11 @@
   padding: 20px 10px;
   border-radius: 3px;
   text-align: center;
+  background-color: #FFF;
+}
+
+.main__dropAreaActive___2hV8V {
+  background-color: #EEE;
 }
 .file__file___maN0q {
   position: relative;

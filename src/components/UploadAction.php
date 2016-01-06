@@ -33,13 +33,11 @@ class UploadAction extends Action
         }
 
         $dir = $this->flowConfig->getTempDir();
-        $filename = uniqid('flow_', true);
-        if ($file->validateFile() && $file->save($dir . DIRECTORY_SEPARATOR . $filename)) {
+        $tempName = uniqid('flow_', true);
+        if ($file->validateFile() && $file->save($dir . DIRECTORY_SEPARATOR . $tempName)) {
             return [
-                'filename' => $filename,
+                'tempName' => $tempName,
             ];
         }
-
-        return [];
     }
 }

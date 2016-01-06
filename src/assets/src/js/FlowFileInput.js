@@ -3,6 +3,7 @@
 import flowFileInput from '../templates/flowFileInput';
 import File from './File';
 import UploadedFile from './UploadedFile';
+import style from '../css/main.css';
 
 class FlowFileInput {
   constructor($el, options) {
@@ -22,10 +23,19 @@ class FlowFileInput {
       this.appendFiles(flowFiles);
     });
     this.flow.on('fileSuccess', (flowFile, message) => {
-      const {filename} = JSON.parse(message);
-      this.uploadedFiles[filename] = flowFile.name;
-      this.files[flowFile.uniqueIdentifier].setFilename(filename);
+      const {tempName} = JSON.parse(message);
+      this.uploadedFiles[tempName] = flowFile.name;
+      this.files[flowFile.uniqueIdentifier].setTempName(tempName);
       this.updateValue();
+    });
+    this.flow.on('uploadStart', () => {
+      this.$input.trigger('uploadStart');
+    });
+    this.flow.on('complete', () => {
+      this.$input.trigger('complete');
+    });
+    this.flow.on('error', () => {
+      this.$input.trigger('error');
     });
   }
   updateValue() {
@@ -44,19 +54,17 @@ class FlowFileInput {
     });
   }
   removeFile(flowFileId) {
-    if (flowFileId in this.files) {
-      if (this.files.hasOwnProperty(flowFileId)) {
-        const filename = this.files[flowFileId].getFilename();
-        delete this.files[flowFileId];
-        this.removeUploadedFile(filename);
-      }
+    if (this.files.hasOwnProperty(flowFileId)) {
+      const tempName = this.files[flowFileId].getTempName();
+      delete this.files[flowFileId];
+      this.removeUploadedFile(tempName);
     }
   }
-  removeUploadedFile(filename) {
-    if (filename !== null && filename !== undefined && filename in this.uploadedFiles) {
-      delete this.uploadedFiles[filename];
+  removeUploadedFile(tempName) {
+    if (this.uploadedFiles.hasOwnProperty(tempName)) {
+      delete this.uploadedFiles[tempName];
       this.updateValue();
-      const url = `${this.options.deleteUrl}?filename=${filename}`;
+      const url = `${this.options.deleteUrl}?filename=${tempName}`;
       $.ajax({
         url,
         type: 'POST',
@@ -71,18 +79,37 @@ class FlowFileInput {
     }
     this.uploadedFiles = JSON.parse(value);
     const keys = Object.keys(this.uploadedFiles);
-    for (const key of keys) {
+    for (const tempName of keys) {
       const data = {
-        filename: key,
-        viewName: this.uploadedFiles[key],
+        tempName,
+        filename: this.uploadedFiles[tempName],
       };
       const file = new UploadedFile(data, this);
       file.appendTo(this.$container.find('[data-el=files]'));
+      this.files[tempName] = file;
     }
   }
   createFlowInputs() {
+    const $dropArea = this.$container.find('[data-el=dropArea]');
     this.flow.assignBrowse(this.$container.find('[data-el=browseLink]')[0]);
-    this.flow.assignDrop(this.$container.find('[data-el=dropArea]')[0]);
+    this.flow.assignDrop($dropArea[0]);
+    $dropArea
+    .on('dragenter', () => {
+      $dropArea.addClass(style.dropAreaActive);
+    })
+    .on('dragleave drop', () => {
+      $dropArea.removeClass(style.dropAreaActive);
+    });
+  }
+  reset() {
+    this.flow.cancel();
+    this.uploadedFiles = {};
+    const keys = Object.keys(this.files);
+    for (const key of keys) {
+      this.files[key].remove();
+    }
+    this.files = {};
+    this.updateValue();
   }
 }
 

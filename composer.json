@@ -12,7 +12,8 @@
     ],
     "require": {
         "yiisoft/yii2": ">=2.0.5",
-        "flowjs/flow-php-server": "^1.0"
+        "flowjs/flow-php-server": "^1.0",
+        "bower-asset/flow.js": "~2"
     },
     "autoload": {
         "psr-4": {

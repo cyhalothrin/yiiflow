@@ -25,7 +25,7 @@ class File {
     this.$container.appendTo($el);
   }
   destroy() {
-    this.$container.remove();
+    this.remove();
     this.flowFile.cancel();
     this.inputObj.removeFile(this.flowFile.uniqueIdentifier);
   }
@@ -37,11 +37,14 @@ class File {
       this.progressBar.complete();
     }
   }
-  setFilename(filename) {
-    this.filename = filename;
+  setTempName(filename) {
+    this.tempName = filename;
   }
-  getFilename() {
-    return this.filename;
+  getTempName() {
+    return this.tempName;
+  }
+  remove() {
+    this.$container.remove();
   }
 }
 

@@ -4,11 +4,9 @@ import fileTemplate from '../templates/file';
 class UploadedFile {
   constructor(data, inputObj) {
     this.inputObj = inputObj;
-    this.filename = data.filename;
+    this.tempName = data.tempName;
     this.$container = $(document.createElement('div'));
-    this.$container.html(fileTemplate({
-      filename: data.viewName,
-    }));
+    this.$container.html(fileTemplate(data));
     this.$container
     .on('click', '[data-el=remove]', () => {
       this.destroy();
@@ -18,8 +16,14 @@ class UploadedFile {
     this.$container.appendTo($el);
   }
   destroy() {
+    this.remove();
+    this.inputObj.removeFile(this.tempName);
+  }
+  getTempName() {
+    return this.tempName;
+  }
+  remove() {
     this.$container.remove();
-    this.inputObj.removeUploadedFile(this.filename);
   }
 }
 
