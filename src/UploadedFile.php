@@ -64,7 +64,7 @@ class UploadedFile extends BaseUploadedFile
     private static function loadFiles($data)
     {
         $results = [];
-        if (empty($data)) {
+        if (!is_string($data) || empty($data)) {
             return $results;
         }
         $files = Json::decode($data);
