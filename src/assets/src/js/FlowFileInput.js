@@ -79,7 +79,7 @@ class FlowFileInput {
     }
     this.uploadedFiles = JSON.parse(value);
     const keys = Object.keys(this.uploadedFiles);
-    for (const tempName of keys) {
+    keys.forEach((tempName) => {
       const data = {
         tempName,
         filename: this.uploadedFiles[tempName],
@@ -87,7 +87,7 @@ class FlowFileInput {
       const file = new UploadedFile(data, this);
       file.appendTo(this.$container.find('[data-el=files]'));
       this.files[tempName] = file;
-    }
+    });
   }
   createFlowInputs() {
     const $dropArea = this.$container.find('[data-el=dropArea]');
@@ -105,9 +105,9 @@ class FlowFileInput {
     this.flow.cancel();
     this.uploadedFiles = {};
     const keys = Object.keys(this.files);
-    for (const key of keys) {
+    keys.forEach((key) => {
       this.files[key].remove();
-    }
+    });
     this.files = {};
     this.updateValue();
   }
